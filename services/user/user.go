@@ -110,29 +110,28 @@ func (s *ServerUser) AddUserToAccount(ctx context.Context, in *pb.AddUserToAccou
 	err = caller.DB.QueryRow(userSqlConfig, in.UserId).Scan(&userName)
 
 	if err != nil {
-		for _, v := range partitions {
-			createUserCmd := fmt.Sprintf("sacctmgr -i create user name='%s' partition='%s' account='%s'", in.UserId, v, in.AccountName)
-			modifyUserCmd := fmt.Sprintf("sacctmgr -i modify user %s set qos='%s' DefaultQOS='%s'", in.UserId, baseQos, defaultQos)
-			retcode01 := utils.ExecuteShellCommand(createUserCmd)
-			if retcode01 != 0 {
-				errInfo := &errdetails.ErrorInfo{
-					Reason: "EXEC_COMMAND_FAILED",
-				}
-				st := status.New(codes.AlreadyExists, "Command exec fail.")
-				st, _ = st.WithDetails(errInfo)
-				caller.Logger.Errorf("AddUserToAccount failed: %v", st.Err())
-				return nil, st.Err()
+		//这里不再加partition参数
+		createUserCmd := fmt.Sprintf("sacctmgr -i create user name='%s' account='%s'", in.UserId, in.AccountName)
+		modifyUserCmd := fmt.Sprintf("sacctmgr -i modify user %s set qos='%s' DefaultQOS='%s'", in.UserId, baseQos, defaultQos)
+		retcode01 := utils.ExecuteShellCommand(createUserCmd)
+		if retcode01 != 0 {
+			errInfo := &errdetails.ErrorInfo{
+				Reason: "EXEC_COMMAND_FAILED",
 			}
-			retcode02 := utils.ExecuteShellCommand(modifyUserCmd)
-			if retcode02 != 0 {
-				errInfo := &errdetails.ErrorInfo{
-					Reason: "EXEC_COMMAND_FAILED",
-				}
-				st := status.New(codes.AlreadyExists, "Command exec fail.")
-				st, _ = st.WithDetails(errInfo)
-				caller.Logger.Errorf("AddUserToAccount failed: %v", st.Err())
-				return nil, st.Err()
+			st := status.New(codes.AlreadyExists, "Command exec fail.")
+			st, _ = st.WithDetails(errInfo)
+			caller.Logger.Errorf("AddUserToAccount failed: %v", st.Err())
+			return nil, st.Err()
+		}
+		retcode02 := utils.ExecuteShellCommand(modifyUserCmd)
+		if retcode02 != 0 {
+			errInfo := &errdetails.ErrorInfo{
+				Reason: "EXEC_COMMAND_FAILED",
 			}
+			st := status.New(codes.AlreadyExists, "Command exec fail.")
+			st, _ = st.WithDetails(errInfo)
+			caller.Logger.Errorf("AddUserToAccount failed: %v", st.Err())
+			return nil, st.Err()
 		}
 		return &pb.AddUserToAccountResponse{}, nil
 	}
@@ -141,29 +140,28 @@ func (s *ServerUser) AddUserToAccount(ctx context.Context, in *pb.AddUserToAccou
 	err = caller.DB.QueryRow(assocSqlConfig, in.UserId, in.AccountName).Scan(&user)
 
 	if err != nil {
-		for _, v := range partitions {
-			createUserCmd := fmt.Sprintf("sacctmgr -i create user name='%s' partition='%s' account='%s'", in.UserId, v, in.AccountName)
-			modifyUserCmd := fmt.Sprintf("sacctmgr -i modify user %s set qos='%s' DefaultQOS='%s'", in.UserId, baseQos, defaultQos)
-			retCode1 := utils.ExecuteShellCommand(createUserCmd)
-			if retCode1 != 0 {
-				errInfo := &errdetails.ErrorInfo{
-					Reason: "EXEC_COMMAND_FAILED",
-				}
-				st := status.New(codes.AlreadyExists, "Command exec fail. ")
-				st, _ = st.WithDetails(errInfo)
-				caller.Logger.Errorf("AddUserToAccount failed: %v", st.Err())
-				return nil, st.Err()
+		//这里不再加partition参数
+		createUserCmd := fmt.Sprintf("sacctmgr -i create user name='%s' account='%s'", in.UserId, in.AccountName)
+		modifyUserCmd := fmt.Sprintf("sacctmgr -i modify user %s set qos='%s' DefaultQOS='%s'", in.UserId, baseQos, defaultQos)
+		retCode1 := utils.ExecuteShellCommand(createUserCmd)
+		if retCode1 != 0 {
+			errInfo := &errdetails.ErrorInfo{
+				Reason: "EXEC_COMMAND_FAILED",
 			}
-			retCode2 := utils.ExecuteShellCommand(modifyUserCmd)
-			if retCode2 != 0 {
-				errInfo := &errdetails.ErrorInfo{
-					Reason: "EXEC_COMMAND_FAILED",
-				}
-				st := status.New(codes.AlreadyExists, "Command exec fail.")
-				st, _ = st.WithDetails(errInfo)
-				caller.Logger.Errorf("AddUserToAccount failed: %v", st.Err())
-				return nil, st.Err()
+			st := status.New(codes.AlreadyExists, "Command exec fail. ")
+			st, _ = st.WithDetails(errInfo)
+			caller.Logger.Errorf("AddUserToAccount failed: %v", st.Err())
+			return nil, st.Err()
+		}
+		retCode2 := utils.ExecuteShellCommand(modifyUserCmd)
+		if retCode2 != 0 {
+			errInfo := &errdetails.ErrorInfo{
+				Reason: "EXEC_COMMAND_FAILED",
 			}
+			st := status.New(codes.AlreadyExists, "Command exec fail.")
+			st, _ = st.WithDetails(errInfo)
+			caller.Logger.Errorf("AddUserToAccount failed: %v", st.Err())
+			return nil, st.Err()
 		}
 		caller.Logger.Infof("AddUserToAccount sucess! User is: %v, Account is: %v", in.UserId, in.AccountName)
 		return &pb.AddUserToAccountResponse{}, nil

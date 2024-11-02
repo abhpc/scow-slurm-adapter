@@ -180,29 +180,28 @@ func (s *ServerAccount) CreateAccount(ctx context.Context, in *pb.CreateAccountR
 			caller.Logger.Errorf("CreateAccount failed: %v", st.Err())
 			return nil, st.Err()
 		}
-		for _, p := range partitions {
-			createUserCmd := fmt.Sprintf("sacctmgr -i create user name=%s partition=%s account=%s", in.OwnerUserId, p, in.AccountName)
-			modifyUserCmd := fmt.Sprintf("sacctmgr -i modify user %s set qos=%s DefaultQOS=%s", in.OwnerUserId, baseQos, defaultQos)
-			retcode01 := utils.ExecuteShellCommand(createUserCmd)
-			if retcode01 != 0 {
-				errInfo := &errdetails.ErrorInfo{
-					Reason: "COMMAND_EXEC_FAILED",
-				}
-				st := status.New(codes.Internal, "Exec command failed.")
-				st, _ = st.WithDetails(errInfo)
-				caller.Logger.Errorf("CreateAccount failed: %v", st.Err())
-				return nil, st.Err()
+		//删除partition参数
+		createUserCmd := fmt.Sprintf("sacctmgr -i create user name=%s account=%s", in.OwnerUserId, in.AccountName)
+		modifyUserCmd := fmt.Sprintf("sacctmgr -i modify user %s set qos=%s DefaultQOS=%s", in.OwnerUserId, baseQos, defaultQos)
+		retcode01 := utils.ExecuteShellCommand(createUserCmd)
+		if retcode01 != 0 {
+			errInfo := &errdetails.ErrorInfo{
+				Reason: "COMMAND_EXEC_FAILED",
 			}
-			retcode02 := utils.ExecuteShellCommand(modifyUserCmd)
-			if retcode02 != 0 {
-				errInfo := &errdetails.ErrorInfo{
-					Reason: "COMMAND_EXEC_FAILED",
-				}
-				st := status.New(codes.Internal, "Exec command failed.")
-				st, _ = st.WithDetails(errInfo)
-				caller.Logger.Errorf("CreateAccount failed: %v", st.Err())
-				return nil, st.Err()
+			st := status.New(codes.Internal, "Exec command failed.")
+			st, _ = st.WithDetails(errInfo)
+			caller.Logger.Errorf("CreateAccount failed: %v", st.Err())
+			return nil, st.Err()
+		}
+		retcode02 := utils.ExecuteShellCommand(modifyUserCmd)
+		if retcode02 != 0 {
+			errInfo := &errdetails.ErrorInfo{
+				Reason: "COMMAND_EXEC_FAILED",
 			}
+			st := status.New(codes.Internal, "Exec command failed.")
+			st, _ = st.WithDetails(errInfo)
+			caller.Logger.Errorf("CreateAccount failed: %v", st.Err())
+			return nil, st.Err()
 		}
 		caller.Logger.Infof("CreateAccount sucess! account is: %v, owerUserId is: %v", in.AccountName, in.OwnerUserId)
 		return &pb.CreateAccountResponse{}, nil
