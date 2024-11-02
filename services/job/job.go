@@ -1206,7 +1206,7 @@ func (s *ServerJob) SubmitJob(ctx context.Context, in *pb.SubmitJobRequest) (*pb
 	// 	scriptString += "#SBATCH " + "--mem=" + strconv.Itoa(int(*in.MemoryMb)) + "MB" + "\n"
 	// }
 	if in.GpuCount != 0 {
-		scriptString += "#SBATCH " + "--gres=gpu:" + strconv.Itoa(int(in.GpuCount)) + "\n"
+		scriptString += "#SBATCH " + "--gpus-per-node=" + strconv.Itoa(int(in.GpuCount)) + "\n"
 	}
 
 	if len(in.ExtraOptions) != 0 {
